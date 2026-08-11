@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+data/history.jsonl
+data/voice_profile.json
+.claude/settings.local.json

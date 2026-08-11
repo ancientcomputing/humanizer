@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Humanizer</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header>
+  <h1>Humanizer</h1>
+  <p class="tagline">Style, not substance. You still post it yourself.</p>
+</header>
+
+<div class="nav-wrap">
+  <nav class="tabs primary-tabs">
+    <button class="tab-btn active" data-tab="humanize">Humanize</button>
+    <button class="tab-btn" data-tab="review">Review Loop</button>
+  </nav>
+  <nav class="tabs secondary-tabs">
+    <button class="tab-btn-secondary" data-tab="profile">Voice Profile</button>
+    <button class="tab-btn-secondary" data-tab="settings">Settings</button>
+  </nav>
+</div>
+
+<main>
+  <section id="tab-humanize" class="tab-panel active">
+    <div id="oobe-banner" class="oobe-banner" style="display:none;">
+      <div class="oobe-banner-text">
+        <strong>New here?</strong> Humanize works right away with a generic pass, but
+        it gets much better once it knows your voice. If you have past examples —
+        an AI draft and what you actually published — bootstrap it now.
+      </div>
+      <button id="oobe-start-learn" class="primary">Start Learn Mode</button>
+    </div>
+
+    <div class="field">
+      <label for="humanize-platform">Platform (format only, not voice)</label>
+      <select id="humanize-platform">
+        <option>Other</option>
+        <option>Reddit</option>
+        <option>LinkedIn</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="humanize-input">AI-generated draft</label>
+      <textarea id="humanize-input" rows="12" placeholder="Paste the AI-generated draft here..."></textarea>
+    </div>
+    <button id="humanize-run" class="primary">Humanize</button>
+    <div id="humanize-status" class="status"></div>
+
+    <div class="field">
+      <label for="humanize-output">Humanized draft</label>
+      <textarea id="humanize-output" rows="12" readonly></textarea>
+    </div>
+    <div class="button-row">
+      <button id="humanize-copy">Copy</button>
+      <button id="humanize-save">Save As...</button>
+      <button id="humanize-send-review">Send to Review Loop &rarr;</button>
+    </div>
+  </section>
+
+  <section id="tab-review" class="tab-panel">
+    <p class="hint">Paste the humanized draft you sent out, and the version you actually
+      ended up publishing after your own edits. Style edits train the voice profile;
+      content edits are ignored.</p>
+    <div class="field">
+      <label for="review-humanized">Humanized draft (before your edits)</label>
+      <textarea id="review-humanized" rows="10"></textarea>
+    </div>
+    <div class="field">
+      <label for="review-edited">Final published version (after your edits)</label>
+      <textarea id="review-edited" rows="10"></textarea>
+    </div>
+    <button id="review-run" class="primary">Run Review</button>
+    <div id="review-status" class="status"></div>
+    <div id="review-result" class="result-box"></div>
+  </section>
+
+  <section id="tab-learn" class="tab-panel">
+    <button id="learn-back" class="back-link">&larr; Back</button>
+    <p class="hint">Bootstrap the voice profile from historical articles. Paste an original
+      AI draft and the version you actually published, run it, then repeat for the next
+      pair.</p>
+    <div class="field">
+      <label for="learn-original">Original AI-generated draft</label>
+      <textarea id="learn-original" rows="10"></textarea>
+    </div>
+    <div class="field">
+      <label for="learn-published">Actually published version</label>
+      <textarea id="learn-published" rows="10"></textarea>
+    </div>
+    <button id="learn-run" class="primary">Run Learn Pair</button>
+    <button id="learn-clear">Clear for Next Pair</button>
+    <div id="learn-status" class="status"></div>
+    <div id="learn-result" class="result-box"></div>
+  </section>
+
+  <section id="tab-profile" class="tab-panel">
+    <p class="hint">What Humanize has learned about how you write. This reloads
+      automatically whenever you open this tab.</p>
+
+    <div class="mode-toggle">
+      <button id="profile-mode-friendly" class="mode-btn active">Friendly</button>
+      <button id="profile-mode-geeky" class="mode-btn">Geeky Mode</button>
+    </div>
+
+    <div id="profile-geeky-actions" class="button-row" style="display:none;">
+      <button id="profile-reload">Reload from disk</button>
+      <button id="profile-consolidate">Consolidate Similar Rules</button>
+      <button id="profile-save" class="primary">Save to disk</button>
+    </div>
+    <div id="profile-status" class="status"></div>
+
+    <div id="profile-cards"></div>
+
+    <textarea id="profile-json" rows="24" spellcheck="false" style="display:none;"></textarea>
+
+    <button id="profile-open-learn" class="link-btn">+ Add more examples from your history (Learn Mode)</button>
+  </section>
+
+  <section id="tab-settings" class="tab-panel">
+    <p class="hint">Keys are stored in your local <code>.env</code> file only — never sent
+      anywhere except to the provider you choose, and never displayed back here once saved.</p>
+
+    <div class="field">
+      <label for="settings-provider">Default provider</label>
+      <select id="settings-provider">
+        <option value="anthropic">Anthropic (Claude)</option>
+        <option value="openai">OpenAI</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="settings-anthropic-key">Anthropic API key <span id="settings-anthropic-status" class="key-status"></span></label>
+      <input type="password" id="settings-anthropic-key" placeholder="sk-ant-..." autocomplete="off" />
+    </div>
+    <div class="field">
+      <label for="settings-anthropic-model">Anthropic model</label>
+      <input type="text" id="settings-anthropic-model" placeholder="claude-sonnet-4-5" />
+    </div>
+
+    <div class="field">
+      <label for="settings-openai-key">OpenAI API key <span id="settings-openai-status" class="key-status"></span></label>
+      <input type="password" id="settings-openai-key" placeholder="sk-..." autocomplete="off" />
+    </div>
+    <div class="field">
+      <label for="settings-openai-model">OpenAI model</label>
+      <input type="text" id="settings-openai-model" placeholder="gpt-4o" />
+    </div>
+
+    <button id="settings-save" class="primary">Save</button>
+    <div id="settings-status" class="status"></div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
