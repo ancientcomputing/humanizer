@@ -3,6 +3,5 @@ __pycache__/
 *.pyc
 .venv/
 venv/
-data/history.jsonl
-data/voice_profile.json
+data/
 .claude/settings.local.json

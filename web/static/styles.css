@@ -42,6 +42,18 @@ header {
   padding: 1.5rem 2rem 0.5rem;
 }
 
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
 header h1 {
   margin: 0;
   font-size: 1.5rem;
@@ -120,6 +132,38 @@ main {
 
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
+
+.guide h2 {
+  font-size: 1.1rem;
+  margin: 1.8rem 0 0.5rem;
+}
+
+.guide h2:first-child {
+  margin-top: 0;
+}
+
+.guide p {
+  line-height: 1.6;
+  margin: 0 0 0.8rem;
+}
+
+.guide ul {
+  line-height: 1.6;
+  margin: 0 0 0.8rem;
+  padding-left: 1.3rem;
+}
+
+.guide li {
+  margin-bottom: 0.4rem;
+}
+
+.guide code {
+  font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+  font-size: 0.85em;
+  background: var(--button-bg);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
 
 .field {
   margin-bottom: 1rem;
@@ -343,37 +387,6 @@ button:disabled {
 
 .oobe-banner button.primary {
   flex-shrink: 0;
-}
-
-.back-link {
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0 0 1rem;
-  margin: 0;
-}
-
-.back-link:hover {
-  color: var(--text);
-}
-
-.link-btn {
-  display: block;
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-size: 0.85rem;
-  cursor: pointer;
-  padding: 0.8rem 0 0;
-  margin: 0;
-  text-decoration: underline;
-}
-
-.link-btn:hover {
-  color: var(--text);
 }
 
 .profile-empty-hint {

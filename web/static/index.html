@@ -4,11 +4,20 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Humanizer</title>
+<link rel="icon" href="favicon.ico" sizes="any" />
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 <header>
-  <h1>Humanizer</h1>
+  <div class="header-title">
+    <svg class="app-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="64" height="64" rx="14" fill="var(--accent)" />
+      <circle cx="32" cy="24" r="11" fill="var(--accent-text)" />
+      <path d="M12 62 C12 42 52 42 52 62 Z" fill="var(--accent-text)" />
+    </svg>
+    <h1>Humanizer</h1>
+  </div>
   <p class="tagline">Style, not substance. You still post it yourself.</p>
 </header>
 
@@ -18,8 +27,10 @@
     <button class="tab-btn" data-tab="review">Review Loop</button>
   </nav>
   <nav class="tabs secondary-tabs">
+    <button class="tab-btn-secondary" data-tab="learn">Learn Mode</button>
     <button class="tab-btn-secondary" data-tab="profile">Voice Profile</button>
     <button class="tab-btn-secondary" data-tab="settings">Settings</button>
+    <button class="tab-btn-secondary" data-tab="howto">How-To</button>
   </nav>
 </div>
 
@@ -32,15 +43,6 @@
         an AI draft and what you actually published — bootstrap it now.
       </div>
       <button id="oobe-start-learn" class="primary">Start Learn Mode</button>
-    </div>
-
-    <div class="field">
-      <label for="humanize-platform">Platform (format only, not voice)</label>
-      <select id="humanize-platform">
-        <option>Other</option>
-        <option>Reddit</option>
-        <option>LinkedIn</option>
-      </select>
     </div>
     <div class="field">
       <label for="humanize-input">AI-generated draft</label>
@@ -61,15 +63,15 @@
   </section>
 
   <section id="tab-review" class="tab-panel">
-    <p class="hint">Paste the humanized draft you sent out, and the version you actually
-      ended up publishing after your own edits. Style edits train the voice profile;
-      content edits are ignored.</p>
+    <p class="hint"><strong>Teach Humanizer to write like you.</strong> Paste the humanized
+      draft, and the version you ended up with after your own edit pass. Style edits train
+      the voice profile; content edits are ignored.</p>
     <div class="field">
       <label for="review-humanized">Humanized draft (before your edits)</label>
       <textarea id="review-humanized" rows="10"></textarea>
     </div>
     <div class="field">
-      <label for="review-edited">Final published version (after your edits)</label>
+      <label for="review-edited">Your edited version (after your edits)</label>
       <textarea id="review-edited" rows="10"></textarea>
     </div>
     <button id="review-run" class="primary">Run Review</button>
@@ -78,7 +80,6 @@
   </section>
 
   <section id="tab-learn" class="tab-panel">
-    <button id="learn-back" class="back-link">&larr; Back</button>
     <p class="hint">Bootstrap the voice profile from historical articles. Paste an original
       AI draft and the version you actually published, run it, then repeat for the next
       pair.</p>
@@ -115,8 +116,6 @@
     <div id="profile-cards"></div>
 
     <textarea id="profile-json" rows="24" spellcheck="false" style="display:none;"></textarea>
-
-    <button id="profile-open-learn" class="link-btn">+ Add more examples from your history (Learn Mode)</button>
   </section>
 
   <section id="tab-settings" class="tab-panel">
@@ -151,6 +150,78 @@
 
     <button id="settings-save" class="primary">Save</button>
     <div id="settings-status" class="status"></div>
+  </section>
+
+  <section id="tab-howto" class="tab-panel guide">
+    <h2>What this tool actually does</h2>
+    <p>Humanizer only touches <strong>style</strong> — word choice, sentence
+      rhythm, structure. It never adds, removes, or changes a claim, fact,
+      or number on its own. And nothing here ever posts anywhere for you:
+      every flow ends with you copying or saving text and publishing it
+      yourself.</p>
+
+    <h2>Humanize</h2>
+    <p>Paste an AI-generated draft here and run it. You'll get back a
+      rewrite that strips common "AI tells" — em-dash overuse,
+      "moreover/furthermore," hedge phrases, overly symmetric paragraph
+      structure. If you don't have a voice profile yet, that's all it
+      does. Once you do, it also applies whatever the tool has learned
+      about how you actually write.</p>
+    <p>Use the <strong>Send to Review Loop</strong> button once you've
+      edited the result somewhere else, to teach the tool from that edit.</p>
+
+    <h2>Review Loop</h2>
+    <p>This is how the tool learns your voice. After you've taken a
+      humanized draft and done your own edit pass on it (anywhere — this
+      app doesn't need to be where you write), paste the before and after
+      here. It diffs the two versions and classifies every change as
+      <strong>style</strong> or <strong>content</strong>:</p>
+    <ul>
+      <li>Style edits (word swaps, rephrasing, tone shifts that don't
+        change what's being said) get folded into your voice profile.</li>
+      <li>Content edits (new facts, removed points, changed numbers or
+        claims) are deliberately ignored — the tool should never quietly
+        absorb a factual change into how it thinks you write.</li>
+    </ul>
+    <p>If the two texts you paste look unrelated rather than like an edit
+      of each other, you'll get a warning instead of a silent, meaningless
+      result — that usually means a paste mistake.</p>
+
+    <h2>Learn Mode</h2>
+    <p>Same engine as Review Loop, different purpose: bootstrapping.
+      If you've got a backlog of articles where you have both the original
+      AI draft and what you actually ended up publishing, feed those pairs
+      in here one at a time to seed your voice profile faster than waiting
+      for it to build up naturally through everyday use.</p>
+
+    <h2>Voice Profile</h2>
+    <p>This is what Humanize actually reads from — not a black box. Each
+      entry is a plain-language description of a tendency (not a rigid
+      find-and-replace pair, since the same habit shows up differently
+      depending on context), with a confidence level that grows the more
+      times that pattern shows up in your edits.</p>
+    <p><strong>Friendly</strong> mode is a read-only view, grouped by
+      category. <strong>Geeky Mode</strong> is the raw underlying JSON
+      file, if you want to hand-edit, delete, or add rules directly —
+      it's designed to be a file you can open in a text editor too, not
+      something locked away.</p>
+    <p>Near-duplicate rules (the same habit described slightly differently
+      across separate edits) get automatically merged after each Review
+      Loop or Learn Mode run, so this stays readable instead of turning
+      into dozens of one-off entries over time.</p>
+
+    <h2>Settings</h2>
+    <p>Pick Anthropic or OpenAI as your provider and paste an API key —
+      it's written straight to your local <code>.env</code> file and never
+      sent anywhere except to that provider when you actually run
+      Humanize or Review Loop. Keys are never shown back to you once
+      saved, only whether one is currently set.</p>
+
+    <h2>Where your data lives</h2>
+    <p>Everything stays on your machine. Your voice profile, drafts, and
+      API keys never leave your computer except for the specific API call
+      each action makes to your chosen provider. There's no account,
+      no cloud sync, and no telemetry.</p>
   </section>
 </main>
 

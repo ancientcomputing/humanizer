@@ -1,42 +1,70 @@
 # Humanizer
 
-A local tool that takes AI-generated marketing drafts and rewrites them
-toward your own authentic writing voice, before you do a final manual edit
-and post it yourself.
+A local tool that takes AI-generated drafts and rewrites them toward your
+own authentic writing voice — then hands the result back to you to do a
+final manual edit and post yourself.
 
 **Nothing in this tool auto-posts anywhere.** Every flow ends with you
-copying or saving the text and publishing it manually.
+copying or saving the text and publishing it manually. There is no
+integration that posts on your behalf, and there never will be in this
+tool's design.
 
-See [docs/humanizer-v1-requirements.md](docs/humanizer-v1-requirements.md)
-for the full design spec.
+---
 
 ## Quick start
 
-```bash
-./run.sh
-```
+**Prerequisites:** Python 3.10+, and an API key for [Anthropic](https://console.anthropic.com/settings/keys) (default) or [OpenAI](https://platform.openai.com/api-keys) (fallback).
 
-(Windows: `run.bat`)
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/ancientcomputing/humanizer.git
+   cd humanizer
+   ```
+2. Run it:
+   - macOS/Linux: `./run.sh`
+   - Windows: `run.bat`
 
-First run creates a `.env` from `.env.example` and exits so you can add your
-API key. Add `ANTHROPIC_API_KEY` (default provider) or `OPENAI_API_KEY`
-(fallback — set `HUMANIZER_PROVIDER=openai` to use it), then run again. The
-app opens at `http://127.0.0.1:8420` by default.
+   First run creates a `.env` file and a local Python virtual environment,
+   then exits so you can add your API key.
+3. Run it again. The app opens automatically at `http://127.0.0.1:8420`.
+4. Go to the **Settings** tab in the app and paste your API key there — it
+   writes straight to your local `.env` file. (You can also edit `.env`
+   directly with a text editor instead, if you'd rather not use the UI.)
 
-## How it works
+That's it — no Docker, no account, no cloud dependency beyond the LLM API
+calls the tool itself makes on your behalf.
 
-- **Humanize** — paste an AI-generated draft, pick a platform (format only,
-  never voice), get a rewritten draft that strips common AI tells and
-  applies your learned voice profile (if any).
-- **Review Loop** — paste the humanized draft and the version you actually
-  ended up publishing after your own edit pass. The app diffs them,
-  classifies each change as style or content via an LLM call, and folds
-  style edits into your voice profile. Content edits are ignored for
-  learning.
-- **Learn Mode** — same engine, used to bootstrap the voice profile from a
-  batch of historical (original draft, published version) pairs.
-- **Voice Profile** — a human-readable, hand-editable JSON file at
-  `data/voice_profile.json`. Add, remove, or veto rules directly.
+---
+
+## What it does
+
+- **Humanize** — paste an AI-generated draft, get back a rewrite that
+  strips common AI tells (em-dash overuse, "moreover/furthermore," hedge
+  phrases, overly symmetric structure) and applies your learned voice
+  profile, if you have one yet.
+- **Review Loop** — paste the humanized draft and the version you ended up
+  with after your own edit pass. The app diffs them, classifies each
+  change as *style* or *content*, and folds only the style edits into your
+  voice profile — content edits (new facts, removed points) are ignored
+  for learning, on purpose.
+- **Learn Mode** — the same engine, but for bootstrapping: feed it a batch
+  of historical (original AI draft, what you actually published) pairs to
+  seed your voice profile before you rely on Humanize day to day. Always
+  available from the nav, not just a first-run thing.
+- **Voice Profile** — a human-readable, editable view of what the tool has
+  learned about your writing (word choices, sentence rhythm, structural
+  habits), with a raw-JSON "Geeky Mode" if you want to hand-edit the file
+  directly. Confidence grows the more times a pattern shows up, and
+  near-duplicate rules get auto-merged so it doesn't get noisy over time.
+- **Settings** — pick your provider (Anthropic or OpenAI) and manage API
+  keys from the UI instead of hand-editing `.env`.
+- **How-To** — an in-app guide covering all of the above, one click away
+  from Settings.
+
+See [docs/humanizer-v1-requirements.md](docs/humanizer-v1-requirements.md)
+for the full original design spec.
+
+---
 
 ## Project layout
 
@@ -53,14 +81,22 @@ core/
 prompts/
   humanize.md              editable humanize prompt
   classify.md               editable style-vs-content classifier prompt
+  consolidate.md            editable duplicate-rule-merging prompt
 web/static/                browser UI (plain HTML/CSS/JS, no build step)
-data/voice_profile.json    your voice profile (not committed once populated)
+data/voice_profile.json    your voice profile (gitignored — stays local)
 ```
 
 ## Notes
 
 - Runs entirely locally, no Docker, no accounts, no telemetry. The only
-  network calls are to your chosen LLM provider for humanize/classify.
-- `.env` is gitignored — never commit API keys.
+  network calls are to your chosen LLM provider, for the humanize/classify
+  requests you trigger.
+- `.env` and `data/` are gitignored — your API keys and your actual
+  learned voice profile (which contains excerpts of your real writing)
+  never leave your machine or get committed.
 - Prompts are plain markdown files in `prompts/` — edit them directly to
-  tune behavior.
+  tune behavior, no code changes required.
+
+## License
+
+[MIT](LICENSE.md)

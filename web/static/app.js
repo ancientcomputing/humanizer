@@ -1,11 +1,6 @@
 const tabButtons = document.querySelectorAll(".tab-btn, .tab-btn-secondary");
 const tabPanels = document.querySelectorAll(".tab-panel");
 
-// Learn Mode has no nav button (it's a one-time/occasional bootstrap flow, not
-// part of the steady-state tab cycle) — remember where we came from so its
-// Back button can return there.
-let lastActiveTab = "humanize";
-
 function showTab(tabName) {
   tabButtons.forEach((b) => b.classList.toggle("active", b.dataset.tab === tabName));
   tabPanels.forEach((p) => p.classList.toggle("active", p.id === `tab-${tabName}`));
@@ -18,23 +13,13 @@ function showTab(tabName) {
 }
 
 tabButtons.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    lastActiveTab = btn.dataset.tab;
-    showTab(btn.dataset.tab);
-  });
+  btn.addEventListener("click", () => showTab(btn.dataset.tab));
 });
 
-function openLearnMode() {
-  showTab("learn");
-}
-
-function closeLearnMode() {
-  showTab(lastActiveTab);
-}
-
-document.getElementById("oobe-start-learn").addEventListener("click", openLearnMode);
-document.getElementById("profile-open-learn").addEventListener("click", openLearnMode);
-document.getElementById("learn-back").addEventListener("click", closeLearnMode);
+// The OOBE banner's button jumps straight to the Learn Mode tab; Learn Mode
+// itself is always reachable afterward via the secondary nav, so this is
+// just a shortcut, not the only way in.
+document.getElementById("oobe-start-learn").addEventListener("click", () => showTab("learn"));
 
 function setStatus(el, message, kind) {
   el.textContent = message;
@@ -59,7 +44,6 @@ async function postJSON(url, body) {
 const humanizeInput = document.getElementById("humanize-input");
 const humanizeOutput = document.getElementById("humanize-output");
 const humanizeStatus = document.getElementById("humanize-status");
-const humanizePlatform = document.getElementById("humanize-platform");
 
 document.getElementById("humanize-run").addEventListener("click", async () => {
   const draft = humanizeInput.value.trim();
@@ -69,10 +53,10 @@ document.getElementById("humanize-run").addEventListener("click", async () => {
   }
   setStatus(humanizeStatus, "Humanizing...");
   try {
-    const result = await postJSON("/api/humanize", {
-      draft,
-      platform: humanizePlatform.value,
-    });
+    // Platform picker is hidden for now; format rules only matter at Export,
+    // and the backend already defaults to "Other" (no format changes) if
+    // omitted, so there's no dedicated per-platform behavior lost here.
+    const result = await postJSON("/api/humanize", { draft });
     humanizeOutput.value = result.draft;
     setStatus(
       humanizeStatus,
