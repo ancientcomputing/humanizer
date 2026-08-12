@@ -18,7 +18,7 @@ class AnthropicProvider(Provider):
     def complete(self, system: str, user: str, max_tokens: int) -> str:
         if not self.config.anthropic_api_key:
             raise ProviderError(
-                "Missing ANTHROPIC_API_KEY. Add it to .env, then restart Humanizer."
+                "No Claude API key set. Add one in the Settings tab, then try again."
             )
 
         payload = {
@@ -65,9 +65,9 @@ def _format_http_error(status_code: int, detail: str) -> str:
         message = detail.strip()
 
     if status_code == 401:
-        return "Claude rejected the API key. Check ANTHROPIC_API_KEY in .env."
+        return "Claude rejected the API key. Check it in the Settings tab."
     if status_code == 404:
-        return "Claude could not find the configured model. Check ANTHROPIC_MODEL in .env."
+        return "Claude could not find the configured model. Check it in the Settings tab."
     if status_code == 429:
         return "Claude rate-limited this request. Try again in a moment."
 

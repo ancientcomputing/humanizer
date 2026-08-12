@@ -17,7 +17,7 @@ class OpenAIProvider(Provider):
     def complete(self, system: str, user: str, max_tokens: int) -> str:
         if not self.config.openai_api_key:
             raise ProviderError(
-                "Missing OPENAI_API_KEY. Add it to .env, then restart Humanizer."
+                "No OpenAI API key set. Add one in the Settings tab, then try again."
             )
 
         payload = {
@@ -63,9 +63,9 @@ def _format_http_error(status_code: int, detail: str) -> str:
         message = detail.strip()
 
     if status_code == 401:
-        return "OpenAI rejected the API key. Check OPENAI_API_KEY in .env."
+        return "OpenAI rejected the API key. Check it in the Settings tab."
     if status_code == 404:
-        return "OpenAI could not find the configured model. Check OPENAI_MODEL in .env."
+        return "OpenAI could not find the configured model. Check it in the Settings tab."
     if status_code == 429:
         return "OpenAI rate-limited this request. Try again in a moment."
 

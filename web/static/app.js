@@ -20,6 +20,19 @@ tabButtons.forEach((btn) => {
 // itself is always reachable afterward via the secondary nav, so this is
 // just a shortcut, not the only way in.
 document.getElementById("oobe-start-learn").addEventListener("click", () => showTab("learn"));
+document.getElementById("setup-start-settings").addEventListener("click", () => showTab("settings"));
+
+async function checkSetupBanner() {
+  try {
+    const response = await fetch("/api/settings");
+    const data = await response.json();
+    const hasKey = data.anthropic_api_key_set || data.openai_api_key_set;
+    document.getElementById("setup-banner").style.display = hasKey ? "none" : "";
+  } catch (err) {
+    // If this fails the Humanize button will surface the real error anyway.
+  }
+}
+checkSetupBanner();
 
 function setStatus(el, message, kind) {
   el.textContent = message;
@@ -432,6 +445,7 @@ document.getElementById("settings-save").addEventListener("click", async () => {
     settingsAnthropicKey.value = "";
     settingsOpenaiKey.value = "";
     await loadSettings();
+    await checkSetupBanner();
     setStatus(settingsStatus, "Saved. New requests will use these settings.", "ok");
   } catch (err) {
     setStatus(settingsStatus, err.message, "error");

@@ -1,13 +1,31 @@
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 APP_NAME = "Humanizer"
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_ENV_PATH = PROJECT_ROOT / ".env"
-DATA_DIR = PROJECT_ROOT / "data"
+
+# Bundled, read-only resources (web/static, prompts). When running from a
+# PyInstaller onefile exe these live in the temp extraction dir (sys._MEIPASS);
+# in a normal checkout it's just the repo root.
+if getattr(sys, "frozen", False):
+    PROJECT_ROOT = Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent))
+else:
+    PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+# Writable, persistent user data (.env, voice profile). The onefile temp
+# extraction dir is wiped on every launch, so this must live somewhere stable
+# instead of under PROJECT_ROOT when frozen.
+if getattr(sys, "frozen", False):
+    USER_DATA_ROOT = Path(os.environ.get("APPDATA", str(Path.home()))) / "Humanizer"
+    USER_DATA_ROOT.mkdir(parents=True, exist_ok=True)
+else:
+    USER_DATA_ROOT = Path(__file__).resolve().parents[1]
+
+DEFAULT_ENV_PATH = USER_DATA_ROOT / ".env"
+DATA_DIR = USER_DATA_ROOT / "data"
 PROMPTS_DIR = PROJECT_ROOT / "prompts"
 
 DEFAULT_PROVIDER = "anthropic"
