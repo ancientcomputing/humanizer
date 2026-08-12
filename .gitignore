@@ -8,3 +8,6 @@ data/
 build/
 dist/
 *.spec
+.build/
+macos-app/Resources/Assets.xcassets/AppIcon.appiconset/*.png
+.DS_Store

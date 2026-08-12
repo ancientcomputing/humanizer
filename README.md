@@ -20,6 +20,13 @@ tool's design.
 
 Both warnings show up because the exe isn't signed with a paid code-signing certificate — not because anything's actually wrong with it. Your browser opens the app; go to **Settings** and paste an API key to get started.
 
+**macOS, native app:** download `Humanizer-<version>-arm64.dmg` from the
+[latest release](https://github.com/ancientcomputing/humanizer/releases/latest)
+(once published), open it, and drag Humanizer into Applications. This is a
+signed and notarized native SwiftUI app — no Python, no local server, no
+Gatekeeper warnings. See [macOS native app](#macos-native-app) below for
+details, and how to build it yourself.
+
 **From source (macOS/Linux/Windows):**
 
 **Prerequisites:** Python 3.10+, and an API key for [Anthropic](https://console.anthropic.com/settings/keys) (default) or [OpenAI](https://platform.openai.com/api-keys) (fallback).
@@ -75,6 +82,110 @@ for the full original design spec.
 
 ---
 
+## macOS native app
+
+`macos-app/` is a from-scratch **SwiftUI** rewrite of the same product —
+not a wrapper around the Python app. There is no embedded Python, no
+bundled interpreter, and no local HTTP server: the app calls the
+Anthropic/OpenAI HTTP APIs directly over `URLSession`, the same way
+`core/providers/*.py` does, just ported to Swift line-for-line (pipeline,
+diffing, format rules, prompts, voice-profile logic all live under
+`macos-app/Sources/HumanizerApp/`). This keeps it simple to sandbox,
+sign, and notarize, and means it starts instantly with no subprocess to
+manage.
+
+**Where its data lives** (deliberately different from the web app, more
+native to macOS):
+
+- API keys → **macOS Keychain** (`com.humanizer.app.apikeys` service),
+  never written to disk in plaintext, never a `.env` file. Managed from
+  the in-app **Settings** tab.
+- Voice profile → `~/Library/Application Support/Humanizer/voice_profile.json`
+  — same JSON schema as the Python app's `data/voice_profile.json`, so a
+  file from one can be dropped into the other's location to carry your
+  learned voice over. It's a plain file you can hand-edit; the app's
+  Voice Profile → Geeky Mode → **Reload from disk** button re-reads it
+  without restarting.
+- Everything else (provider choice, model names, max tokens) →
+  `UserDefaults`.
+
+### Building from source
+
+Requires Xcode (or the Xcode command line tools) with Swift 6 support,
+macOS 13+ as the deployment target.
+
+```bash
+cd macos-app
+swift build -c release
+open .build/release/HumanizerApp
+```
+
+That's an unsigned dev build — fine for local testing, but macOS Keychain
+access for an unsigned/ad-hoc binary can prompt for permission the first
+time a key is saved. For a real distributable build, use the release
+script below instead.
+
+### Building a signed, notarized release DMG
+
+`scripts/release-macos.sh` builds the arm64 release binary, generates the
+app icon, assembles and code-signs the `.app` bundle, notarizes and
+staples it, then packages a drag-to-Applications DMG (also
+signed/notarized/stapled) with a `.sha256` checksum. It's a straight port
+of the same release flow used for the AnswerSearch macOS app.
+
+Requirements:
+
+- An Apple Developer ID Application signing certificate installed in your
+  keychain (`APP_IDENTITY`).
+- A notarization keychain profile created once via
+  `xcrun notarytool store-credentials <profile-name>` (`KEYCHAIN_PROFILE`).
+- Pillow for the Python interpreter used to generate the app icon
+  (`pip install pillow`, or point `ICON_PYTHON` at one that has it).
+
+```bash
+VERSION=0.1.0 \
+APP_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+KEYCHAIN_PROFILE="your-notary-profile" \
+./scripts/release-macos.sh
+```
+
+Useful overrides:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `NOTARIZE_APP` | `1` | Set to `0` to skip app notarization (e.g. local testing of the signing flow). |
+| `NOTARIZE_DMG` | `1` | Set to `0` to skip DMG notarization. |
+| `TEAM_ID` | unset | Pass explicitly if `notarytool` can't infer it from the keychain profile. |
+| `ICON_PYTHON` / `PYTHON` | `python3` | Python interpreter used to render the app icon (`macos-app/Resources/generate_app_icon.py`). |
+
+Output lands in `dist/`: `Humanizer.app`, `Humanizer-<version>-arm64.dmg`,
+and its `.sha256`. Both `build/` and `dist/` are gitignored.
+
+### Project layout (macOS app)
+
+```
+macos-app/
+  Package.swift                    SwiftPM manifest (macOS 13+)
+  Resources/
+    Info.plist                      bundle metadata, version, copyright
+    Humanizer.entitlements          sandboxed, network-client only
+    generate_app_icon.py            renders the AppIcon.appiconset PNGs
+    Assets.xcassets/                app icon asset catalog
+  Sources/HumanizerApp/
+    HumanizerApp.swift               app entry point, menu commands
+    AppSettings.swift                provider/model settings + Keychain-backed API keys
+    KeychainStore.swift              thin Keychain wrapper
+    VoiceProfileStore.swift          voice profile load/save/rule-update logic
+    Pipeline.swift                   humanize / review / consolidate orchestration
+    PromptTemplates.swift            prompt text ported from prompts/*.md
+    Diffing.swift / FormatRules.swift
+    AppTheme.swift                   color palette ported from web/static/styles.css
+    Providers/                       Anthropic + OpenAI URLSession clients
+    Views/                           SwiftUI views for each tab
+```
+
+---
+
 ## Project layout
 
 ```
@@ -93,6 +204,8 @@ prompts/
   consolidate.md            editable duplicate-rule-merging prompt
 web/static/                browser UI (plain HTML/CSS/JS, no build step)
 data/voice_profile.json    your voice profile (gitignored — stays local)
+macos-app/                 native SwiftUI macOS app — see "macOS native app" above
+scripts/release-macos.sh   builds + signs + notarizes the macOS release DMG
 ```
 
 ## Notes
