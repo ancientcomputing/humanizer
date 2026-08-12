@@ -88,9 +88,19 @@ bundled interpreter, and no local HTTP server: the app calls the
 Anthropic/OpenAI HTTP APIs directly over `URLSession`, the same way
 `core/providers/*.py` does, just ported to Swift line-for-line (pipeline,
 diffing, format rules, prompts, voice-profile logic all live under
-`macos-app/Sources/HumanizerApp/`). This keeps it simple to sandbox,
-sign, and notarize, and means it starts instantly with no subprocess to
-manage.
+`macos-app/Sources/HumanizerApp/`), and means it starts instantly with no
+subprocess to manage.
+
+**Not sandboxed, on purpose.** `Humanizer.entitlements` only declares
+`com.apple.security.network.client` — no `com.apple.security.app-sandbox`.
+The voice profile is explicitly meant to be a plain file you can find and
+hand-edit (see below), and macOS App Sandbox silently redirects
+`Application Support` into a private per-app container the moment
+`app-sandbox` is enabled, which defeats that. Mac App Store distribution
+*requires* sandboxing, so if this ever ships there, it'll need its own
+`-AppStore` entitlements file and release script (mirroring
+`release-macos-appstore.sh` in the AnswerSearch project this was ported
+from) rather than sandboxing the direct-download build.
 
 **Where its data lives** (deliberately different from the web app, more
 native to macOS):
@@ -166,7 +176,7 @@ macos-app/
   Package.swift                    SwiftPM manifest (macOS 13+)
   Resources/
     Info.plist                      bundle metadata, version, copyright
-    Humanizer.entitlements          sandboxed, network-client only
+    Humanizer.entitlements           unsandboxed, network-client only (see note above)
     generate_app_icon.py            renders the AppIcon.appiconset PNGs
     Assets.xcassets/                app icon asset catalog
   Sources/HumanizerApp/
