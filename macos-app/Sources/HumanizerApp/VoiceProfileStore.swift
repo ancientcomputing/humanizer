@@ -258,18 +258,4 @@ final class VoiceProfileStore: ObservableObject {
 
         return lines.joined(separator: "\n")
     }
-
-    /// High-confidence rules only, formatted for the verify pass. Empty string if none.
-    func mandatoryRulesContext() -> String {
-        let mandatory = data.rules.filter { $0.confidence == "high" }
-        guard !mandatory.isEmpty else { return "" }
-
-        return mandatory.map { rule in
-            var line = "- \(rule.description)"
-            if !rule.exampleBefore.isEmpty && !rule.exampleAfter.isEmpty {
-                line += " (e.g. \"\(rule.exampleBefore)\" -> \"\(rule.exampleAfter)\")"
-            }
-            return line
-        }.joined(separator: "\n")
-    }
 }

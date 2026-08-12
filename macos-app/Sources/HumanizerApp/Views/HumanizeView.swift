@@ -13,8 +13,8 @@ struct HumanizeView: View {
     @State private var output = ""
     @State private var status = ""
     @State private var isRunning = false
-    @State private var preVerifyDraft: String?
-    @State private var showPreVerifyDraft = false
+    @State private var firstPassDraft: String?
+    @State private var showFirstPassDraft = false
 
     var body: some View {
         ScrollView {
@@ -61,17 +61,17 @@ struct HumanizeView: View {
                     .background(AppTheme.panel)
                     .overlay(RoundedRectangle(cornerRadius: 6).stroke(AppTheme.border))
 
-                if let preVerifyDraft {
-                    Button(showPreVerifyDraft ? "Hide pre-verify draft ▾" : "Show pre-verify draft (before rule check pass) ▸") {
-                        showPreVerifyDraft.toggle()
+                if let firstPassDraft {
+                    Button(showFirstPassDraft ? "Hide first-pass draft ▾" : "Show first-pass draft (before second pass) ▸") {
+                        showFirstPassDraft.toggle()
                     }
                     .buttonStyle(.plain)
                     .font(.system(size: 13))
                     .foregroundStyle(AppTheme.muted)
 
-                    if showPreVerifyDraft {
-                        fieldLabel("Output before the verify pass ran")
-                        TextEditor(text: .constant(preVerifyDraft))
+                    if showFirstPassDraft {
+                        fieldLabel("Output before the second pass ran")
+                        TextEditor(text: .constant(firstPassDraft))
                             .font(.system(size: 14))
                             .frame(minHeight: 160)
                             .padding(6)
@@ -126,8 +126,8 @@ struct HumanizeView: View {
     private func run() {
         isRunning = true
         status = "Working..."
-        preVerifyDraft = nil
-        showPreVerifyDraft = false
+        firstPassDraft = nil
+        showFirstPassDraft = false
         let provider = settings.makeProvider()
         let maxTokens = settings.maxTokens
         let draftValue = draft
@@ -139,7 +139,7 @@ struct HumanizeView: View {
                     draft: draftValue, platform: "Other"
                 )
                 output = result.draft
-                preVerifyDraft = result.preVerifyDraft
+                firstPassDraft = result.firstPassDraft
                 status = result.usedVoiceProfile
                     ? "Applied generic pass + your voice profile."
                     : "No voice profile yet — generic pass only."

@@ -48,37 +48,32 @@ def humanize(
 
     output = output.strip()
 
-    pre_verify_draft = None
-    mandatory_rules = voice_profile.mandatory_rules_context()
-    if mandatory_rules:
-        pre_verify_draft = output
-        output = _verify(provider, config, mandatory_rules, output)
+    first_pass_draft = None
+    if used_voice_profile:
+        first_pass_draft = output
+        second_user = render(user_template, draft=output)
+        output = _second_pass(provider, config, system, second_user, fallback=output)
 
     return {
         "draft": output,
         "used_voice_profile": used_voice_profile,
-        "pre_verify_draft": pre_verify_draft,
+        "first_pass_draft": first_pass_draft,
     }
 
 
-def _verify(
-    provider: Provider, config: Config, mandatory_rules: str, draft: str
+def _second_pass(
+    provider: Provider, config: Config, system: str, user: str, fallback: str
 ) -> str:
-    """Second pass: check draft against mandatory (high-confidence) rules and
-    fix any missed instances. Falls back to the unverified draft if this
-    call fails, since a failed proofreading pass shouldn't block humanize."""
-    template = load_template("verify.md")
-    system, user_template = split_system_user(template)
-    system = render(system, mandatory_rules=mandatory_rules)
-    user = render(user_template, draft=draft)
-
+    """Run the humanize prompt again on its own output, so the model gets a
+    second honest attempt at applying voice rules it missed the first time.
+    Falls back to the first-pass draft if this call fails."""
     try:
         output = provider.complete(system, user, config.max_tokens)
     except ProviderError:
-        return draft
+        return fallback
 
     output = output.strip()
-    return output if output else draft
+    return output if output else fallback
 
 
 def review(

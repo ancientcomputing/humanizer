@@ -64,10 +64,10 @@ struct ConsolidateResponse: Codable {
 struct HumanizeResult {
     var draft: String
     var usedVoiceProfile: Bool
-    /// The output of the first (humanize) pass, before the verify pass ran —
-    /// nil if the verify pass didn't run. Surfaced in the UI for debugging
+    /// The output of the first humanize pass, before the second pass ran —
+    /// nil if there was no second pass. Surfaced in the UI for debugging
     /// which pass introduced a given change.
-    var preVerifyDraft: String?
+    var firstPassDraft: String?
 }
 
 struct ReviewResult {
@@ -120,31 +120,25 @@ enum Pipeline {
         }
         output = output.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        let preVerifyDraft = output
-        let mandatoryRules = voiceProfile.mandatoryRulesContext()
-        if !mandatoryRules.isEmpty {
-            output = await verify(provider: provider, maxTokens: maxTokens, mandatoryRules: mandatoryRules, draft: output)
+        var firstPassDraft: String?
+        if usedVoiceProfile {
+            firstPassDraft = output
+            let secondUser = PromptTemplates.render(PromptTemplates.humanizeUser, ["draft": output])
+            output = await secondPass(provider: provider, maxTokens: maxTokens, system: system, user: secondUser, fallback: output)
         }
 
-        return HumanizeResult(
-            draft: output,
-            usedVoiceProfile: usedVoiceProfile,
-            preVerifyDraft: mandatoryRules.isEmpty ? nil : preVerifyDraft
-        )
+        return HumanizeResult(draft: output, usedVoiceProfile: usedVoiceProfile, firstPassDraft: firstPassDraft)
     }
 
-    /// Second pass: check draft against mandatory (high-confidence) rules and fix any
-    /// missed instances. Falls back to the unverified draft if this call fails, since a
-    /// failed proofreading pass shouldn't block humanize.
-    private static func verify(provider: Provider, maxTokens: Int, mandatoryRules: String, draft: String) async -> String {
-        let system = PromptTemplates.render(PromptTemplates.verifySystem, ["mandatory_rules": mandatoryRules])
-        let user = PromptTemplates.render(PromptTemplates.verifyUser, ["draft": draft])
-
+    /// Runs the humanize prompt again on its own output, so the model gets a second
+    /// honest attempt at applying voice rules it missed the first time. Falls back to
+    /// the first-pass draft if this call fails.
+    private static func secondPass(provider: Provider, maxTokens: Int, system: String, user: String, fallback: String) async -> String {
         guard let output = try? await provider.complete(system: system, user: user, maxTokens: maxTokens) else {
-            return draft
+            return fallback
         }
         let trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? draft : trimmed
+        return trimmed.isEmpty ? fallback : trimmed
     }
 
     static func review(provider: Provider, maxTokens: Int, mismatchThreshold: Double, voiceProfile: VoiceProfileStore, humanizedText: String, editedText: String) async throws -> ReviewResult {

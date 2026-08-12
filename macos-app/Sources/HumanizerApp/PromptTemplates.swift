@@ -51,6 +51,4 @@ enum PromptTemplates {
     static var classifyUser: String { section("classify").user }
     static var consolidateSystem: String { section("consolidate").system }
     static var consolidateUser: String { section("consolidate").user }
-    static var verifySystem: String { section("verify").system }
-    static var verifyUser: String { section("verify").user }
 }
