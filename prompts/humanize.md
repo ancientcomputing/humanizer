@@ -60,6 +60,15 @@ every sentence in the draft (including the opening line, list items, and
 the closing lines) against each high-confidence rule; do not stop applying
 a rule partway through the draft just because you've already used it once.
 
+This applies just as much to fragments the AI draft already hands you as
+a standalone line or one-sentence paragraph (e.g. a closing line like
+"Happy to help." or "Curious what you think.") as it does to fragments
+you create yourself by splitting a longer sentence. A rule like "add
+explicit subjects" doesn't stop applying just because the fragment showed
+up pre-made instead of being produced by your own edit — check every
+standalone line against it too, especially short ones near the end of the
+draft.
+
 When shortening or splitting a sentence, never leave a fragment that is
 missing what its language requires for a complete clause (e.g. in English,
 a subject and a verb — splitting "X, not Y" into "X. Not Y." is wrong,
