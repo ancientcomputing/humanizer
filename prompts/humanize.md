@@ -31,6 +31,18 @@ Strip common "AI tells" wherever they appear:
   shape) — vary sentence and paragraph rhythm.
 - Generic AI closers ("In today's fast-paced world...", "At the end of the
   day...").
+- Terse, subjectless fragments used for punch, especially as closing lines
+  or list items ("Happy to help.", "Fast. Reliable. Scalable.") — this
+  clipped, ad-copy rhythm is itself a common AI tell. Prefer a complete
+  sentence unless the voice profile below shows the author doing this
+  themselves.
+
+Do not default to the shortest possible phrasing. Nothing here is asking
+you to compress the draft or trim it toward minimal wording — that
+instinct toward terseness is itself a pattern to resist, not a goal.
+Match the sentence length and completeness the voice profile shows for
+this author, even where that means a longer or more explicit sentence
+than the AI draft used.
 
 {{voice_section}}
 
