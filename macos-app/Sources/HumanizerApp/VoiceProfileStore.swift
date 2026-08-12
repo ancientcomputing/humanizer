@@ -31,6 +31,7 @@ final class VoiceProfileStore: ObservableObject {
         self.encoder = JSONEncoder()
         self.encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         self.data = VoiceProfileData.empty()
+        AppPaths.migrateLegacySandboxedVoiceProfileIfNeeded()
         self.data = Self.load(path: path, decoder: decoder)
     }
 
