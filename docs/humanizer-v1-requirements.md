@@ -223,7 +223,7 @@ in application logic), versioned similarly to the voice profile.
   content) with brief reasoning, plus a proposed voice-profile rule update
   for style changes where applicable.
 
-Exact prompt wording can be drafted by Claude Code and iterated on by the
+Exact prompt wording can be drafted and iterated on by the
 user; this doc specifies required inputs/outputs, not final wording.
 
 ---
@@ -260,7 +260,7 @@ user; this doc specifies required inputs/outputs, not final wording.
 
 ---
 
-## 10. Open Items for Claude Code / Implementation
+## 10. Open Items for Implementation
 
 - Exact prompt wording for humanize and classify (draft + iterate).
 - Whether voice-profile rule updates from Section 5.2/5.3 are auto-appended
