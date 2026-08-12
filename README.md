@@ -20,7 +20,7 @@ tool's design.
 
 Both warnings show up because the exe isn't signed with a paid code-signing certificate — not because anything's actually wrong with it. Your browser opens the app; go to **Settings** and paste an API key to get started.
 
-**macOS, native app:** download [`Humanizer-0.1.0-arm64.dmg`](https://github.com/ancientcomputing/humanizer/releases/tag/0.1.0-macos), open it, and drag Humanizer into Applications. This is a
+**macOS, native app:** download [`Humanizer-0.1.0-arm64.dmg`](https://github.com/ancientcomputing/humanizer/releases/tag/0.1.1-macos), open it, and drag Humanizer into Applications. This is a
 signed and notarized native SwiftUI app — no Python, no local server, no
 Gatekeeper warnings. See [macOS native app](#macos-native-app) below for
 details, and how to build it yourself.
