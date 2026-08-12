@@ -13,6 +13,10 @@ tool's design.
 
 ## Quick start
 
+**Windows, no Python required:** download [`Humanizer.exe`](https://github.com/ancientcomputing/humanizer/releases/latest) from the latest release and double-click it. Windows SmartScreen may warn since it isn't code-signed — click "More info" → "Run anyway". Your browser opens the app; go to **Settings** and paste an API key to get started.
+
+**From source (macOS/Linux/Windows):**
+
 **Prerequisites:** Python 3.10+, and an API key for [Anthropic](https://console.anthropic.com/settings/keys) (default) or [OpenAI](https://platform.openai.com/api-keys) (fallback).
 
 1. Clone the repo:
