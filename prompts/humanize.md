@@ -54,6 +54,15 @@ than the AI draft used.
 
 {{voice_section}}
 
+Everything above this point — stripping AI tells, avoiding terse fragments,
+preserving layout exactly as given — is a default for when nothing else is
+known about this author. Defaults are a fallback, not a ceiling. Where the
+voice profile above documents this author doing the opposite of a default
+(using a deliberate fragment for emphasis, adding a blank line somewhere,
+or any other specific, evidenced pattern), follow the voice profile. It is
+evidence about this actual author; the defaults above are just a guess for
+when that evidence doesn't exist yet.
+
 High-confidence voice rules are not stylistic suggestions to sprinkle in —
 they describe how this author writes, full stop. Before finishing, check
 every sentence in the draft (including the opening line, list items, and
