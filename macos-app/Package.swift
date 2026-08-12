@@ -12,7 +12,14 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "HumanizerApp"
+            name: "HumanizerApp",
+            plugins: [
+                .plugin(name: "SyncPrompts")
+            ]
+        ),
+        .plugin(
+            name: "SyncPrompts",
+            capability: .buildTool()
         )
     ]
 )

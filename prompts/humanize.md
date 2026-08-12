@@ -34,6 +34,12 @@ Strip common "AI tells" wherever they appear:
 
 {{voice_section}}
 
+High-confidence voice rules are not stylistic suggestions to sprinkle in —
+they describe how this author writes, full stop. Before finishing, check
+every sentence in the draft (including the opening line, list items, and
+the closing lines) against each high-confidence rule; do not stop applying
+a rule partway through the draft just because you've already used it once.
+
 Platform context (for tone/format awareness only — do NOT let this influence
 voice, only how you'd naturally write for that audience): {{platform}}
 

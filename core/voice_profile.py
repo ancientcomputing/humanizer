@@ -245,17 +245,31 @@ class VoiceProfile:
             key=lambda r: int(r.get("source_count", 0)),
             reverse=True,
         )
-        if rules:
-            lines.append("Voice rules (higher confidence = more reliable):")
-            for rule in rules:
-                lines.append(
-                    f"- [{rule.get('confidence', 'low')}] {rule.get('description', '')}"
-                    + (
-                        f" (e.g. \"{rule['example_before']}\" -> \"{rule['example_after']}\")"
-                        if rule.get("example_before") and rule.get("example_after")
-                        else ""
-                    )
-                )
+        mandatory = [r for r in rules if r.get("confidence") == "high"]
+        situational = [r for r in rules if r.get("confidence") != "high"]
+
+        def _format(rule, with_confidence: bool) -> str:
+            prefix = f"[{rule.get('confidence', 'low')}] " if with_confidence else ""
+            example = (
+                f" (e.g. \"{rule['example_before']}\" -> \"{rule['example_after']}\")"
+                if rule.get("example_before") and rule.get("example_after")
+                else ""
+            )
+            return f"- {prefix}{rule.get('description', '')}{example}"
+
+        if mandatory:
+            lines.append(
+                "Apply these rules to EVERY matching instance in the draft, not "
+                "just the first one or two — scan the whole text, including "
+                "closing lines and list items:"
+            )
+            for rule in mandatory:
+                lines.append(_format(rule, with_confidence=False))
+
+        if situational:
+            lines.append("\nApply these where they fit naturally (lower confidence — use judgment):")
+            for rule in situational:
+                lines.append(_format(rule, with_confidence=True))
 
         avoid = self.data.get("lexical_preferences", {}).get("avoid", [])
         if avoid:

@@ -217,9 +217,23 @@ final class VoiceProfileStore: ObservableObject {
 
         var lines: [String] = []
         let rules = data.rules.sorted { $0.sourceCount > $1.sourceCount }
-        if !rules.isEmpty {
-            lines.append("Voice rules (higher confidence = more reliable):")
-            for rule in rules {
+        let mandatory = rules.filter { $0.confidence == "high" }
+        let situational = rules.filter { $0.confidence != "high" }
+
+        if !mandatory.isEmpty {
+            lines.append("Apply these rules to EVERY matching instance in the draft, not just the first one or two — scan the whole text, including closing lines and list items:")
+            for rule in mandatory {
+                var line = "- \(rule.description)"
+                if !rule.exampleBefore.isEmpty && !rule.exampleAfter.isEmpty {
+                    line += " (e.g. \"\(rule.exampleBefore)\" -> \"\(rule.exampleAfter)\")"
+                }
+                lines.append(line)
+            }
+        }
+
+        if !situational.isEmpty {
+            lines.append("\nApply these where they fit naturally (lower confidence — use judgment):")
+            for rule in situational {
                 var line = "- [\(rule.confidence)] \(rule.description)"
                 if !rule.exampleBefore.isEmpty && !rule.exampleAfter.isEmpty {
                     line += " (e.g. \"\(rule.exampleBefore)\" -> \"\(rule.exampleAfter)\")"
