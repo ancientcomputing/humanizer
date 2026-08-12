@@ -10,7 +10,7 @@ pip install -q -r requirements-build.txt
 if exist "build" rmdir /s /q "build"
 if exist "dist\Humanizer.exe" del /q "dist\Humanizer.exe"
 
-pyinstaller --noconfirm --onefile --name Humanizer ^
+pyinstaller --noconfirm --onefile --noupx --name Humanizer ^
   --icon "web\static\favicon.ico" ^
   --add-data "web;web" ^
   --add-data "prompts;prompts" ^
