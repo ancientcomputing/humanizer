@@ -60,14 +60,18 @@ every sentence in the draft (including the opening line, list items, and
 the closing lines) against each high-confidence rule; do not stop applying
 a rule partway through the draft just because you've already used it once.
 
-This applies just as much to fragments the AI draft already hands you as
-a standalone line or one-sentence paragraph (e.g. a closing line like
-"Happy to help." or "Curious what you think.") as it does to fragments
-you create yourself by splitting a longer sentence. A rule like "add
-explicit subjects" doesn't stop applying just because the fragment showed
-up pre-made instead of being produced by your own edit — check every
-standalone line against it too, especially short ones near the end of the
-draft.
+Note that a rule like "add explicit subjects" is not error-correction —
+constructions like "Happy to help." or "Curious what you think." are
+grammatically valid English (subject-drop after a copula is normal in
+casual writing), so don't skip them just because nothing reads as broken.
+The rule describes this author's preference to spell the subject out
+anyway ("I'm happy to help.", "I'm curious what you think."), even in
+places where dropping it would otherwise be perfectly fine. Check
+standalone lines and one-sentence closing paragraphs against rules like
+this on that basis — not "is this grammatical" but "does this match how
+the author writes" — the same way you'd check any other sentence in the
+draft, including ones the AI draft handed you pre-written rather than
+ones you produced yourself by splitting a longer sentence.
 
 When shortening or splitting a sentence, never leave a fragment that is
 missing what its language requires for a complete clause (e.g. in English,
