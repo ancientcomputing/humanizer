@@ -9,17 +9,17 @@ import PackagePlugin
 @main
 struct SyncPrompts: BuildToolPlugin {
     func createBuildCommands(context: PluginContext, target: Target) async throws -> [Command] {
-        let promptsDir = context.package.directory.appending(subpath: "../prompts")
-        let outputDir = context.pluginWorkDirectory.appending(subpath: "Prompts")
+        let promptsDir = context.package.directoryURL.appending(path: "../prompts")
+        let outputDir = context.pluginWorkDirectoryURL.appending(path: "Prompts")
         let names = ["humanize.md", "classify.md", "consolidate.md"]
 
-        try FileManager.default.createDirectory(atPath: outputDir.string, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
 
         return [
             .prebuildCommand(
                 displayName: "Sync prompts/*.md into Resources/Prompts",
-                executable: Path("/bin/cp"),
-                arguments: names.map { promptsDir.appending(subpath: $0).string } + [outputDir.string],
+                executable: URL(fileURLWithPath: "/bin/cp"),
+                arguments: names.map { promptsDir.appending(path: $0).path } + [outputDir.path],
                 outputFilesDirectory: outputDir
             )
         ]
