@@ -40,11 +40,15 @@ every sentence in the draft (including the opening line, list items, and
 the closing lines) against each high-confidence rule; do not stop applying
 a rule partway through the draft just because you've already used it once.
 
-When shortening or splitting a sentence, never leave a fragment without its
-own subject and verb (e.g. splitting "X, not Y" into "X. Not Y." is wrong —
-"Not Y." has no subject). If a trailing clause like that would become a
-fragment on its own, join it to the previous clause with "and" instead of a
-period (e.g. "X, not Y" -> "X, and not Y" or "X and not Y").
+When shortening or splitting a sentence, never leave a fragment that is
+missing what its language requires for a complete clause (e.g. in English,
+a subject and a verb — splitting "X, not Y" into "X. Not Y." is wrong,
+since "Not Y." has neither). If splitting a trailing clause off into its
+own sentence would produce something incomplete like that, keep it joined
+to the previous clause instead, using whatever connector or punctuation is
+natural and grammatically complete in the draft's own language — do not
+default to a fixed word or a period-split just because that's the usual
+move for this rule.
 
 Platform context (for tone/format awareness only — do NOT let this influence
 voice, only how you'd naturally write for that audience): {{platform}}
