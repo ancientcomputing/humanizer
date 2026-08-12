@@ -64,6 +64,10 @@ struct ConsolidateResponse: Codable {
 struct HumanizeResult {
     var draft: String
     var usedVoiceProfile: Bool
+    /// The output of the first (humanize) pass, before the verify pass ran —
+    /// nil if the verify pass didn't run. Surfaced in the UI for debugging
+    /// which pass introduced a given change.
+    var preVerifyDraft: String?
 }
 
 struct ReviewResult {
@@ -104,7 +108,7 @@ enum Pipeline {
         ])
         let user = PromptTemplates.render(PromptTemplates.humanizeUser, ["draft": draft])
 
-        let output: String
+        var output: String
         do {
             output = try await provider.complete(system: system, user: user, maxTokens: maxTokens)
         } catch let error as ProviderError {
@@ -114,8 +118,33 @@ enum Pipeline {
         guard !output.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw PipelineError.message("The provider returned an empty response.")
         }
+        output = output.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        return HumanizeResult(draft: output.trimmingCharacters(in: .whitespacesAndNewlines), usedVoiceProfile: usedVoiceProfile)
+        let preVerifyDraft = output
+        let mandatoryRules = voiceProfile.mandatoryRulesContext()
+        if !mandatoryRules.isEmpty {
+            output = await verify(provider: provider, maxTokens: maxTokens, mandatoryRules: mandatoryRules, draft: output)
+        }
+
+        return HumanizeResult(
+            draft: output,
+            usedVoiceProfile: usedVoiceProfile,
+            preVerifyDraft: mandatoryRules.isEmpty ? nil : preVerifyDraft
+        )
+    }
+
+    /// Second pass: check draft against mandatory (high-confidence) rules and fix any
+    /// missed instances. Falls back to the unverified draft if this call fails, since a
+    /// failed proofreading pass shouldn't block humanize.
+    private static func verify(provider: Provider, maxTokens: Int, mandatoryRules: String, draft: String) async -> String {
+        let system = PromptTemplates.render(PromptTemplates.verifySystem, ["mandatory_rules": mandatoryRules])
+        let user = PromptTemplates.render(PromptTemplates.verifyUser, ["draft": draft])
+
+        guard let output = try? await provider.complete(system: system, user: user, maxTokens: maxTokens) else {
+            return draft
+        }
+        let trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? draft : trimmed
     }
 
     static func review(provider: Provider, maxTokens: Int, mismatchThreshold: Double, voiceProfile: VoiceProfileStore, humanizedText: String, editedText: String) async throws -> ReviewResult {

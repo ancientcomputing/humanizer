@@ -1,9 +1,9 @@
 import Foundation
 
-/// Loads prompt templates from prompts/*.md (bundled via symlink at
-/// Resources/Prompts — see Package.swift). prompts/*.md is the single
-/// source of truth, shared with the Python backend (core/prompts.py);
-/// do not hardcode prompt text here.
+/// Loads prompt templates from prompts/*.md, synced into the resource
+/// bundle at build time by the SyncPrompts plugin (see Package.swift).
+/// prompts/*.md is the single source of truth, shared with the Python
+/// backend (core/prompts.py); do not hardcode prompt text here.
 enum PromptTemplates {
     private static func loadTemplate(_ name: String) -> String {
         guard let url = Bundle.module.url(forResource: name, withExtension: "md", subdirectory: "Resources/Prompts")
@@ -51,4 +51,6 @@ enum PromptTemplates {
     static var classifyUser: String { section("classify").user }
     static var consolidateSystem: String { section("consolidate").system }
     static var consolidateUser: String { section("consolidate").user }
+    static var verifySystem: String { section("verify").system }
+    static var verifyUser: String { section("verify").user }
 }

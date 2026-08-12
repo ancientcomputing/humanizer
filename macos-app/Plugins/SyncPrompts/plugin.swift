@@ -11,7 +11,7 @@ struct SyncPrompts: BuildToolPlugin {
     func createBuildCommands(context: PluginContext, target: Target) async throws -> [Command] {
         let promptsDir = context.package.directoryURL.appending(path: "../prompts")
         let outputDir = context.pluginWorkDirectoryURL.appending(path: "Prompts")
-        let names = ["humanize.md", "classify.md", "consolidate.md"]
+        let names = ["humanize.md", "classify.md", "consolidate.md", "verify.md"]
 
         try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
 

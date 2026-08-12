@@ -286,6 +286,21 @@ class VoiceProfile:
 
         return "\n".join(lines)
 
+    def mandatory_rules_context(self) -> str:
+        """High-confidence rules only, formatted for the verify pass. Empty string if none."""
+        rules = [r for r in self.data.get("rules", []) if r.get("confidence") == "high"]
+        if not rules:
+            return ""
+        lines = []
+        for rule in rules:
+            example = (
+                f" (e.g. \"{rule['example_before']}\" -> \"{rule['example_after']}\")"
+                if rule.get("example_before") and rule.get("example_after")
+                else ""
+            )
+            lines.append(f"- {rule.get('description', '')}{example}")
+        return "\n".join(lines)
+
 
 def _confidence_for_count(count: int) -> str:
     if count >= 4:

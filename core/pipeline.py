@@ -46,10 +46,39 @@ def humanize(
     if not output.strip():
         raise PipelineError("The provider returned an empty response.")
 
+    output = output.strip()
+
+    pre_verify_draft = None
+    mandatory_rules = voice_profile.mandatory_rules_context()
+    if mandatory_rules:
+        pre_verify_draft = output
+        output = _verify(provider, config, mandatory_rules, output)
+
     return {
-        "draft": output.strip(),
+        "draft": output,
         "used_voice_profile": used_voice_profile,
+        "pre_verify_draft": pre_verify_draft,
     }
+
+
+def _verify(
+    provider: Provider, config: Config, mandatory_rules: str, draft: str
+) -> str:
+    """Second pass: check draft against mandatory (high-confidence) rules and
+    fix any missed instances. Falls back to the unverified draft if this
+    call fails, since a failed proofreading pass shouldn't block humanize."""
+    template = load_template("verify.md")
+    system, user_template = split_system_user(template)
+    system = render(system, mandatory_rules=mandatory_rules)
+    user = render(user_template, draft=draft)
+
+    try:
+        output = provider.complete(system, user, config.max_tokens)
+    except ProviderError:
+        return draft
+
+    output = output.strip()
+    return output if output else draft
 
 
 def review(
