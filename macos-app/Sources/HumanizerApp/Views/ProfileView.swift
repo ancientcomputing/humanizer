@@ -85,8 +85,8 @@ struct ProfileView: View {
                     ForEach(rules) { rule in
                         VStack(alignment: .leading, spacing: 2) {
                             Text(rule.description).font(.system(size: 14))
-                            if !rule.exampleBefore.isEmpty && !rule.exampleAfter.isEmpty {
-                                Text("\"\(rule.exampleBefore)\" → \"\(rule.exampleAfter)\"")
+                            ForEach(Array(rule.examples.enumerated()), id: \.offset) { _, example in
+                                Text("\"\(example.before)\" → \"\(example.after)\"")
                                     .font(.system(size: 13)).foregroundStyle(AppTheme.muted)
                             }
                             Text("\(rule.confidence) confidence · seen \(rule.sourceCount)×")

@@ -19,6 +19,12 @@ struct MergeResult {
 
 @MainActor
 final class VoiceProfileStore: ObservableObject {
+    /// Cap on stored examples per rule. Reinforcements beyond this evict the oldest example
+    /// (FIFO) rather than overwriting the one example a rule used to hold — so a broad,
+    /// frequently-reinforced rule keeps a few different illustrations instead of losing all
+    /// but the most recent one.
+    static let maxExamplesPerRule = 3
+
     @Published var data: VoiceProfileData
 
     private let path: URL
@@ -104,8 +110,7 @@ final class VoiceProfileStore: ObservableObject {
                 data.rules[idx].sourceCount += 1
                 data.rules[idx].confidence = confidenceForCount(data.rules[idx].sourceCount)
                 if let before = update.exampleBefore, let after = update.exampleAfter, !before.isEmpty, !after.isEmpty {
-                    data.rules[idx].exampleBefore = before
-                    data.rules[idx].exampleAfter = after
+                    Self.appendExample(RuleExample(before: before, after: after), to: &data.rules[idx].examples)
                 }
                 actions.append(RuleUpdateAction(
                     action: "reinforced",
@@ -115,11 +120,16 @@ final class VoiceProfileStore: ObservableObject {
                     confidence: data.rules[idx].confidence
                 ))
             } else {
+                let example: [RuleExample]
+                if let before = update.exampleBefore, let after = update.exampleAfter, !before.isEmpty, !after.isEmpty {
+                    example = [RuleExample(before: before, after: after)]
+                } else {
+                    example = []
+                }
                 let newRule = VoiceRule(
                     id: nextRuleID(),
                     description: description,
-                    exampleBefore: update.exampleBefore ?? "",
-                    exampleAfter: update.exampleAfter ?? "",
+                    examples: example,
                     category: update.category ?? "tone",
                     confidence: "low",
                     sourceCount: 1
@@ -137,6 +147,17 @@ final class VoiceProfileStore: ObservableObject {
 
         data.history.append(VoiceProfileHistoryEntry(date: isoToday(), articleId: articleID, editsAbsorbed: actions.count))
         return actions
+    }
+
+    /// Appends an example to a rule's example list, capped at maxExamplesPerRule (FIFO
+    /// eviction of the oldest). Skips exact duplicates so repeated identical edits don't
+    /// crowd out variety.
+    private static func appendExample(_ example: RuleExample, to examples: inout [RuleExample]) {
+        guard !examples.contains(example) else { return }
+        examples.append(example)
+        if examples.count > maxExamplesPerRule {
+            examples.removeFirst(examples.count - maxExamplesPerRule)
+        }
     }
 
     func rulesAsJSON() -> String {
@@ -167,11 +188,22 @@ final class VoiceProfileStore: ObservableObject {
                 description = rulesByID[sourceIDs[0]]?.description ?? ""
             }
 
+            // Source rules' own examples go in first so the consolidation's chosen
+            // representative example (added last) survives the FIFO cap below.
+            var mergedExamples: [RuleExample] = []
+            for sourceID in sourceIDs {
+                for example in rulesByID[sourceID]?.examples ?? [] {
+                    Self.appendExample(example, to: &mergedExamples)
+                }
+            }
+            if let before = cluster.exampleBefore, let after = cluster.exampleAfter, !before.isEmpty, !after.isEmpty {
+                Self.appendExample(RuleExample(before: before, after: after), to: &mergedExamples)
+            }
+
             let newRule = VoiceRule(
                 id: String(format: "rule_%03d", index + 1),
                 description: description,
-                exampleBefore: cluster.exampleBefore ?? rulesByID[sourceIDs[0]]?.exampleBefore ?? "",
-                exampleAfter: cluster.exampleAfter ?? rulesByID[sourceIDs[0]]?.exampleAfter ?? "",
+                examples: mergedExamples,
                 category: cluster.category ?? rulesByID[sourceIDs[0]]?.category ?? "tone",
                 confidence: confidenceForCount(mergedCount),
                 sourceCount: mergedCount
@@ -223,22 +255,14 @@ final class VoiceProfileStore: ObservableObject {
         if !mandatory.isEmpty {
             lines.append("Apply these rules to EVERY matching instance in the draft, not just the first one or two — scan the whole text, including closing lines and list items:")
             for rule in mandatory {
-                var line = "- \(rule.description)"
-                if !rule.exampleBefore.isEmpty && !rule.exampleAfter.isEmpty {
-                    line += " (e.g. \"\(rule.exampleBefore)\" -> \"\(rule.exampleAfter)\")"
-                }
-                lines.append(line)
+                lines.append("- \(rule.description)\(Self.exampleSuffix(rule.examples))")
             }
         }
 
         if !situational.isEmpty {
             lines.append("\nApply these where they fit naturally (lower confidence — use judgment):")
             for rule in situational {
-                var line = "- [\(rule.confidence)] \(rule.description)"
-                if !rule.exampleBefore.isEmpty && !rule.exampleAfter.isEmpty {
-                    line += " (e.g. \"\(rule.exampleBefore)\" -> \"\(rule.exampleAfter)\")"
-                }
-                lines.append(line)
+                lines.append("- [\(rule.confidence)] \(rule.description)\(Self.exampleSuffix(rule.examples))")
             }
         }
 
@@ -257,5 +281,14 @@ final class VoiceProfileStore: ObservableObject {
         }
 
         return lines.joined(separator: "\n")
+    }
+
+    /// Renders a rule's examples as a trailing " (e.g. ...)" suffix, joining more than one
+    /// example with "; also" so a broad rule can show a few different shapes of the same
+    /// tendency instead of just one.
+    private static func exampleSuffix(_ examples: [RuleExample]) -> String {
+        guard !examples.isEmpty else { return "" }
+        let rendered = examples.map { "\"\($0.before)\" -> \"\($0.after)\"" }
+        return " (e.g. " + rendered.joined(separator: "; also ") + ")"
     }
 }

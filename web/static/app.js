@@ -352,10 +352,11 @@ function renderRuleCard(rule) {
   description.textContent = rule.description || "";
   card.appendChild(description);
 
-  if (rule.example_before && rule.example_after) {
+  for (const ex of rule.examples || []) {
+    if (!ex.before || !ex.after) continue;
     const example = document.createElement("div");
     example.className = "rule-example";
-    example.textContent = `"${rule.example_before}" → "${rule.example_after}"`;
+    example.textContent = `"${ex.before}" → "${ex.after}"`;
     card.appendChild(example);
   }
 

@@ -8,6 +8,12 @@ from typing import Any
 
 SCHEMA_VERSION = 1
 
+# Cap on stored examples per rule. Reinforcements beyond this evict the oldest
+# example (FIFO) rather than overwriting the one example a rule used to hold —
+# so a broad, frequently-reinforced rule keeps a few different illustrations
+# instead of losing all but the most recent one.
+MAX_EXAMPLES_PER_RULE = 3
+
 
 def empty_profile() -> dict[str, Any]:
     return {
@@ -41,6 +47,8 @@ class VoiceProfile:
         loaded.setdefault("lexical_preferences", {"avoid": [], "prefer": []})
         loaded.setdefault("structural_notes", [])
         loaded.setdefault("history", [])
+        for rule in loaded["rules"]:
+            _migrate_rule_examples(rule)
         return loaded
 
     def reload(self) -> None:
@@ -112,8 +120,11 @@ class VoiceProfile:
                 existing["source_count"] = int(existing.get("source_count", 1)) + 1
                 existing["confidence"] = _confidence_for_count(existing["source_count"])
                 if update.get("example_before") and update.get("example_after"):
-                    existing["example_before"] = update["example_before"]
-                    existing["example_after"] = update["example_after"]
+                    _append_example(
+                        existing.setdefault("examples", []),
+                        update["example_before"],
+                        update["example_after"],
+                    )
                 actions.append(
                     {
                         "action": "reinforced",
@@ -124,11 +135,13 @@ class VoiceProfile:
                     }
                 )
             else:
+                examples: list[dict[str, str]] = []
+                if update.get("example_before") and update.get("example_after"):
+                    _append_example(examples, update["example_before"], update["example_after"])
                 new_rule = {
                     "id": self.next_rule_id(),
                     "description": description,
-                    "example_before": update.get("example_before", ""),
-                    "example_after": update.get("example_after", ""),
+                    "examples": examples,
                     "category": update.get("category", "tone"),
                     "confidence": "low",
                     "source_count": 1,
@@ -185,13 +198,19 @@ class VoiceProfile:
             if not description:
                 description = rules_by_id[source_ids[0]].get("description", "")
 
+            # Source rules' own examples go in first so the consolidation's chosen
+            # representative example (added last) survives the FIFO cap.
+            merged_examples: list[dict[str, str]] = []
+            for source_id in source_ids:
+                for example in rules_by_id[source_id].get("examples", []):
+                    _append_example(merged_examples, example.get("before", ""), example.get("after", ""))
+            if cluster.get("example_before") and cluster.get("example_after"):
+                _append_example(merged_examples, cluster["example_before"], cluster["example_after"])
+
             new_rule = {
                 "id": f"rule_{index:03d}",
                 "description": description,
-                "example_before": cluster.get("example_before")
-                or rules_by_id[source_ids[0]].get("example_before", ""),
-                "example_after": cluster.get("example_after")
-                or rules_by_id[source_ids[0]].get("example_after", ""),
+                "examples": merged_examples,
                 "category": cluster.get("category")
                 or rules_by_id[source_ids[0]].get("category", "tone"),
                 "confidence": _confidence_for_count(merged_count),
@@ -250,12 +269,7 @@ class VoiceProfile:
 
         def _format(rule, with_confidence: bool) -> str:
             prefix = f"[{rule.get('confidence', 'low')}] " if with_confidence else ""
-            example = (
-                f" (e.g. \"{rule['example_before']}\" -> \"{rule['example_after']}\")"
-                if rule.get("example_before") and rule.get("example_after")
-                else ""
-            )
-            return f"- {prefix}{rule.get('description', '')}{example}"
+            return f"- {prefix}{rule.get('description', '')}{_example_suffix(rule.get('examples', []))}"
 
         if mandatory:
             lines.append(
@@ -293,3 +307,36 @@ def _confidence_for_count(count: int) -> str:
     if count >= 2:
         return "medium"
     return "low"
+
+
+def _append_example(examples: list[dict[str, str]], before: str, after: str) -> None:
+    """Appends an example to a rule's example list, capped at MAX_EXAMPLES_PER_RULE
+    (FIFO eviction of the oldest). Skips exact duplicates so repeated identical
+    edits don't crowd out variety."""
+    candidate = {"before": before, "after": after}
+    if candidate in examples:
+        return
+    examples.append(candidate)
+    excess = len(examples) - MAX_EXAMPLES_PER_RULE
+    if excess > 0:
+        del examples[:excess]
+
+
+def _example_suffix(examples: list[dict[str, str]]) -> str:
+    """Renders a rule's examples as a trailing ' (e.g. ...)' suffix, joining more
+    than one example with '; also' so a broad rule can show a few different
+    shapes of the same tendency instead of just one."""
+    if not examples:
+        return ""
+    rendered = [f"\"{ex.get('before', '')}\" -> \"{ex.get('after', '')}\"" for ex in examples]
+    return " (e.g. " + "; also ".join(rendered) + ")"
+
+
+def _migrate_rule_examples(rule: dict[str, Any]) -> None:
+    """In-place migration: converts a rule's legacy single example_before/
+    example_after fields into the examples list, if it doesn't already have one."""
+    if "examples" in rule:
+        return
+    before = rule.pop("example_before", "")
+    after = rule.pop("example_after", "")
+    rule["examples"] = [{"before": before, "after": after}] if before and after else []
