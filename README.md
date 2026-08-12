@@ -13,7 +13,12 @@ tool's design.
 
 ## Quick start
 
-**Windows, no Python required:** download [`Humanizer.exe`](https://github.com/ancientcomputing/humanizer/releases/latest) from the latest release and double-click it. Windows SmartScreen may warn since it isn't code-signed — click "More info" → "Run anyway". Your browser opens the app; go to **Settings** and paste an API key to get started.
+**Windows, no Python required:** download [`Humanizer.exe`](https://github.com/ancientcomputing/humanizer/releases/latest) from the latest release. It isn't code-signed, so Windows will show a couple of warnings before it'll let you run it — this is normal, and only needs doing once:
+
+1. **Browser download warning** (Edge/Chrome): after the download finishes, click the **`⋮`** menu next to the file and choose **Keep**. In the "Make sure you trust `Humanizer.exe`" dialog, click the small **∨** dropdown on the **Delete** button and choose **Keep anyway**.
+2. **Windows SmartScreen**, when you double-click the exe: click **"More info"**, then **"Run anyway"**.
+
+Both warnings show up because the exe isn't signed with a paid code-signing certificate — not because anything's actually wrong with it. Your browser opens the app; go to **Settings** and paste an API key to get started.
 
 **From source (macOS/Linux/Windows):**
 
