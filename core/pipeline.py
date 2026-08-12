@@ -48,32 +48,10 @@ def humanize(
 
     output = output.strip()
 
-    first_pass_draft = None
-    if used_voice_profile:
-        first_pass_draft = output
-        second_user = render(user_template, draft=output)
-        output = _second_pass(provider, config, system, second_user, fallback=output)
-
     return {
         "draft": output,
         "used_voice_profile": used_voice_profile,
-        "first_pass_draft": first_pass_draft,
     }
-
-
-def _second_pass(
-    provider: Provider, config: Config, system: str, user: str, fallback: str
-) -> str:
-    """Run the humanize prompt again on its own output, so the model gets a
-    second honest attempt at applying voice rules it missed the first time.
-    Falls back to the first-pass draft if this call fails."""
-    try:
-        output = provider.complete(system, user, config.max_tokens)
-    except ProviderError:
-        return fallback
-
-    output = output.strip()
-    return output if output else fallback
 
 
 def review(

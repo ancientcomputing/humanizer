@@ -64,10 +64,6 @@ struct ConsolidateResponse: Codable {
 struct HumanizeResult {
     var draft: String
     var usedVoiceProfile: Bool
-    /// The output of the first humanize pass, before the second pass ran —
-    /// nil if there was no second pass. Surfaced in the UI for debugging
-    /// which pass introduced a given change.
-    var firstPassDraft: String?
 }
 
 struct ReviewResult {
@@ -108,7 +104,7 @@ enum Pipeline {
         ])
         let user = PromptTemplates.render(PromptTemplates.humanizeUser, ["draft": draft])
 
-        var output: String
+        let output: String
         do {
             output = try await provider.complete(system: system, user: user, maxTokens: maxTokens)
         } catch let error as ProviderError {
@@ -118,27 +114,8 @@ enum Pipeline {
         guard !output.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw PipelineError.message("The provider returned an empty response.")
         }
-        output = output.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        var firstPassDraft: String?
-        if usedVoiceProfile {
-            firstPassDraft = output
-            let secondUser = PromptTemplates.render(PromptTemplates.humanizeUser, ["draft": output])
-            output = await secondPass(provider: provider, maxTokens: maxTokens, system: system, user: secondUser, fallback: output)
-        }
-
-        return HumanizeResult(draft: output, usedVoiceProfile: usedVoiceProfile, firstPassDraft: firstPassDraft)
-    }
-
-    /// Runs the humanize prompt again on its own output, so the model gets a second
-    /// honest attempt at applying voice rules it missed the first time. Falls back to
-    /// the first-pass draft if this call fails.
-    private static func secondPass(provider: Provider, maxTokens: Int, system: String, user: String, fallback: String) async -> String {
-        guard let output = try? await provider.complete(system: system, user: user, maxTokens: maxTokens) else {
-            return fallback
-        }
-        let trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? fallback : trimmed
+        return HumanizeResult(draft: output.trimmingCharacters(in: .whitespacesAndNewlines), usedVoiceProfile: usedVoiceProfile)
     }
 
     static func review(provider: Provider, maxTokens: Int, mismatchThreshold: Double, voiceProfile: VoiceProfileStore, humanizedText: String, editedText: String) async throws -> ReviewResult {
