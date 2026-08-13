@@ -39,11 +39,13 @@ Strip common "AI tells" wherever they appear:
   merging or splitting the paragraphs/list items themselves.
 - Generic AI closers ("In today's fast-paced world...", "At the end of the
   day...").
-- Terse, subjectless fragments used for punch, especially as closing lines
-  or list items ("Happy to help.", "Fast. Reliable. Scalable.") — this
-  clipped, ad-copy rhythm is itself a common AI tell. Prefer a complete
-  sentence unless the voice profile below shows the author doing this
-  themselves.
+- Dropped subjects and articles ("a," "an," "the") for a clipped, telegraphic
+  rhythm — "Happy to help." instead of "I'm happy to help.", "Talks to
+  Claude" instead of "It talks to Claude", "Model outputs prediction"
+  instead of "The model outputs a prediction." This isn't about any one
+  author's voice — it's a general tell of AI-generated text reaching for
+  punchy brevity, so restore the subject and the articles a natural
+  sentence would have by default, the same way any fluent writer would.
 
 Do not default to the shortest possible phrasing. Nothing here is asking
 you to compress the draft or trim it toward minimal wording — that
